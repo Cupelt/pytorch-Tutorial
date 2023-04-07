@@ -1,14 +1,11 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
-from torch.utils.data import DataLoader
-from data import data
+from data import CustomData
 
 torch.manual_seed(1)
 
-dataset = data()
+dataset = CustomData()
 
 # 모델 초기화
 W = torch.zeros((2, 1), requires_grad=True)
@@ -24,7 +21,7 @@ nb_epochs = 5000
 for epoch in range(nb_epochs + 1):
 
     # Cost 계산
-    hypothesis = torch.sigmoid(x_train.matmul(W) + b)
+    hypothesis = 1 / (1 + torch.exp(-(x_train.matmul(W) + b)))
     loss = -(y_train * torch.log(hypothesis) + (1 - y_train) * torch.log(1 - hypothesis)).mean()
 
     # cost로 H(x) 개선
@@ -38,5 +35,5 @@ for epoch in range(nb_epochs + 1):
             epoch, nb_epochs, loss.item()
         ))
 
-prediction = hypothesis
+prediction = hypothesis >= torch.FloatTensor([0.5])
 print(prediction)

@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 
-class data(Dataset):
+class CustomData(Dataset):
   def __init__(self):
     self.x_data = [[1, 2], [2, 3], [3, 1], [4, 3], [5, 3], [6, 2]]
     self.y_data = [[0], [0], [0], [1], [1], [1]]
