@@ -20,14 +20,14 @@ b = torch.zeros(1, requires_grad=True)
 #경사 하강법
 optimizer = optim.SGD([W, b], lr=1e-3)
 
-nb_epochs = 100000
-for epoch in range(nb_epochs + 1):
+num_epochs = 100000
+for epoch in range(num_epochs + 1):
 
     # H(x) 계산
-    hypothesis = x_train.matmul(W) + b
+    y_pred = x_train.matmul(W) + b
 
     # loss 계산
-    loss = torch.mean((hypothesis - y_train) ** 2)
+    loss = torch.mean((y_pred - y_train) ** 2)
 
     # 가중치 업데이트
     optimizer.zero_grad()
@@ -35,8 +35,8 @@ for epoch in range(nb_epochs + 1):
     optimizer.step()
 
     if epoch % 100 == 0:
-        print('Epoch {:4d}/{} hypothesis: {} Loss: {:.6f}'.format(
-            epoch, nb_epochs, hypothesis.squeeze().detach(), loss.item()
+        print('Epoch {:4d}/{} prediction: {} Loss: {:.6f}'.format(
+            epoch, num_epochs, y_pred.squeeze().detach(), loss.item()
         ))
 
 x_result = torch.FloatTensor([[73,  80]])

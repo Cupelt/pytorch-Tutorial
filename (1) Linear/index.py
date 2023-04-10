@@ -13,12 +13,12 @@ b = torch.zeros(1, requires_grad=True)
 
 optimizer = optim.SGD([W, b], lr=0.01)
 
-nb_epochs = 1999
-for epoch in range(nb_epochs + 1):
+num_epochs = 1999
+for epoch in range(num_epochs + 1):
 
-    hypothesis = x_train * W + b
+    y_pred = x_train * W + b
 
-    loss = torch.mean((hypothesis - y_train) ** 2)
+    loss = torch.mean((y_pred - y_train) ** 2)
 
     optimizer.zero_grad()
     loss.backward()
@@ -26,7 +26,7 @@ for epoch in range(nb_epochs + 1):
 
     if epoch % 100 == 0:
         print('Epoch {:4d}/{} W: {:.3f}, b: {:.3f} loss: {:.6f}'.format(
-            epoch, nb_epochs, W.item(), b.item(), loss.item()
+            epoch, num_epochs, W.item(), b.item(), loss.item()
         ))
 
 x_result = torch.FloatTensor([[10]])

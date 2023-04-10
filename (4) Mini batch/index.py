@@ -25,10 +25,10 @@ for epoch in range(nb_epochs + 1):
     # print(samples)
     x_train, y_train = samples
     # H(x) 계산
-    prediction = model(x_train)
+    y_pred = model(x_train)
 
     # loss 계산
-    loss = F.mse_loss(prediction, y_train)
+    loss = F.mse_loss(y_pred, y_train)
 
     # loss로 H(x) 계산
     optimizer.zero_grad()
@@ -40,5 +40,5 @@ for epoch in range(nb_epochs + 1):
         loss.item()
         ))
 
-x_result = torch.FloatTensor([[73,  80,  75]])
+prediction = torch.FloatTensor([[73,  80,  75]])
 print(model(x_result))
