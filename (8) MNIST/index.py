@@ -46,7 +46,7 @@ criterion = nn.CrossEntropyLoss().to(device) # 내부적으로 소프트맥스 �
 optimizer = torch.optim.SGD(linear.parameters(), lr=0.1)
 
 for epoch in range(training_epochs): # 앞서 training_epochs의 값은 15로 지정함.
-    avg_cost = 0
+    avg_loss = 0
     total_batch = len(data_loader)
 
     for X, Y in data_loader:
@@ -55,29 +55,28 @@ for epoch in range(training_epochs): # 앞서 training_epochs의 값은 15로 �
         # 레이블은 원-핫 인코딩이 된 상태가 아니라 0 ~ 9의 정수.
         Y = Y.to(device)
 
-        optimizer.zero_grad()
         hypothesis = linear(X)
-        cost = criterion(hypothesis, Y)
-        cost.backward()
+        loss = criterion(hypothesis, Y)
+
+        optimizer.zero_grad()
+        loss.backward()
         optimizer.step()
 
-        avg_cost += cost / total_batch
+        avg_loss += loss / total_batch
 
-    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
-
-print('Learning finished')
+    print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.9f}'.format(avg_loss))
 
 
-for i in range(10):
-    with torch.no_grad(): # torch.no_grad()를 하면 gradient 계산을 수행하지 않는다.
-        X_test = mnist_test.test_data.view(-1, 28 * 28).float().to(device)
-        Y_test = mnist_test.test_labels.to(device)
+with torch.no_grad(): # torch.no_grad()를 하면 gradient 계산을 수행하지 않는다.
+    X_test = mnist_test.test_data.view(-1, 28 * 28).float().to(device)
+    Y_test = mnist_test.test_labels.to(device)
 
-        prediction = linear(X_test)
-        correct_prediction = torch.argmax(prediction, 1) == Y_test
-        accuracy = correct_prediction.float().mean()
-        print('Accuracy:', accuracy.item())
-
+    prediction = linear(X_test)
+    correct_prediction = torch.argmax(prediction, 1) == Y_test
+    accuracy = correct_prediction.float().mean()
+    print('Accuracy:', accuracy.item())
+    
+    for i in range(5):
         # MNIST 테스트 데이터에서 무작위로 하나를 뽑아서 예측을 해본다
         r = random.randint(0, len(mnist_test) - 1)
         X_single_data = mnist_test.test_data[r:r + 1].view(-1, 28 * 28).float().to(device)
