@@ -18,18 +18,18 @@ if device == 'cuda':
     torch.cuda.manual_seed_all(777)
 
 # MNIST dataset
-mnist_train = dsets.MNIST(root='MNIST_data/',
+mnist_train = dsets.MNIST(root='./datas/MNIST_data/',
                           train=True,
                           transform=transforms.ToTensor(),
                           download=True)
 
-mnist_test = dsets.MNIST(root='MNIST_data/',
+mnist_test = dsets.MNIST(root='./datas/MNIST_data/',
                          train=False,
                          transform=transforms.ToTensor(),
                          download=True)
 
 # hyperparameters
-training_epochs = 15
+training_epochs = 5
 batch_size = 100
 
 # dataset loader
@@ -77,6 +77,7 @@ with torch.no_grad(): # torch.no_grad()를 하면 gradient 계산을 수행하�
     print('Accuracy:', accuracy.item())
     
     for i in range(5):
+        print("Num_Prediction : ", i)
         # MNIST 테스트 데이터에서 무작위로 하나를 뽑아서 예측을 해본다
         r = random.randint(0, len(mnist_test) - 1)
         X_single_data = mnist_test.test_data[r:r + 1].view(-1, 28 * 28).float().to(device)
