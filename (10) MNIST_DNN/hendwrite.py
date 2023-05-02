@@ -40,10 +40,13 @@ for epoch in range(train_epochs):
               .format(epoch, train_epochs, loss.item()))
     losses.append(loss.item())
 
-rand = random.randint(0, len(digits.images) - 1)
-
-prediction = model(torch.tensor(digits.data[rand], dtype=torch.float32)).argmax()
-
-plt.imshow(digits.images[rand], cmap=plt.cm.gray_r, interpolation='nearest')
-plt.title('label: {}, prediction: {}'.format(digits.target[rand], prediction))
+plt.plot(losses)
 plt.show()
+
+# rand = random.randint(0, len(digits.images) - 1)
+
+# prediction = model(torch.tensor(digits.data[rand], dtype=torch.float32)).argmax()
+
+# plt.imshow(digits.images[rand], cmap=plt.cm.gray_r, interpolation='nearest')
+# plt.title('label: {}, prediction: {}'.format(digits.target[rand], prediction))
+# plt.show()
