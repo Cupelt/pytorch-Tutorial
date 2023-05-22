@@ -30,12 +30,15 @@ def imshow(img):
     plt.imshow(np_img, cmap='gray')
     plt.show()
 
-def imshow_grid(img):
+def imshow_grid(img, path=None, title='unknown'):
     img = utils.make_grid(img.cpu().detach())
     img = (img+1)/2
     npimg = img.numpy()
+    # plt.figure()
+    plt.title(title)
     plt.imshow(np.transpose(npimg, (1,2,0)))
-    plt.show()
+    plt.savefig(path)
+
 
 d_noise  = 100
 d_hidden = 256
@@ -64,7 +67,8 @@ imshow(img_fake.squeeze().cpu().detach())
 # Batch SIze만큼 노이즈 생성하여 그리드로 출력하기
 z = sample_z(batch_size)
 img_fake = G(z)
-imshow_grid(img_fake)
+imshow_grid(img_fake, path='Trained Data/Fake Images.png', title='Fake Images')
+plt.show()
 
 D = nn.Sequential(
     nn.Linear(28*28, d_hidden),
@@ -179,7 +183,9 @@ optimizer_d = optim.Adam(D.parameters(), lr = 0.0002)
 p_real_trace = []
 p_fake_trace = []
 
-for epoch in range(200):
+num_epochs = 1000
+
+for epoch in range(num_epochs):
 
     run_epoch(G, D, optimizer_g, optimizer_d)
     p_real, p_fake = evaluate_model(G,D)
@@ -187,5 +193,8 @@ for epoch in range(200):
     p_real_trace.append(p_real)
     p_fake_trace.append(p_fake)
     
-    print('(epoch %i/200) p_real: %f, p_g: %f' % (epoch+1, p_real, p_fake))
-    imshow_grid(G(sample_z(16)).view(-1, 1, 28, 28))
+    if (epoch+1)%1 == 0:
+        print('(epoch %i/%i) p_real: %f, p_g: %f' % (epoch+1, num_epochs, p_real, p_fake))
+        imshow_grid(G(sample_z(16)).view(-1, 1, 28, 28), path='Trained Data\Epoch %i' % (epoch+1), title='p_real: %f, p_fake: %f' % (p_real, p_fake))
+
+# plt.show()
