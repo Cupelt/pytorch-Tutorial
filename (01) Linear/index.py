@@ -13,7 +13,7 @@ b = torch.zeros(1, requires_grad=True)
 
 optimizer = optim.SGD([W, b], lr=0.01)
 
-num_epochs = 1999
+num_epochs = 10000
 for epoch in range(num_epochs + 1):
 
     y_pred = x_train * W + b

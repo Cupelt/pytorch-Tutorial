@@ -1,6 +1,6 @@
 import numpy as np
 
-timesteps = 10 # 시점의 수. NLP에서는 보통 문장의 길이가 된다.
+timesteps = 2 # 시점의 수. NLP에서는 보통 문장의 길이가 된다.
 input_size = 4 # 입력의 차원. NLP에서는 보통 단어 벡터의 차원이 된다.
 hidden_size = 8 # 은닉 상태의 크기. 메모리 셀의 용량이다.
 
