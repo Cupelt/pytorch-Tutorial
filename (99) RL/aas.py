@@ -1,14 +1,18 @@
-from nes_py.wrappers import JoypadSpace
-import gym_super_mario_bros
-from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
-env = gym_super_mario_bros.make('SuperMarioBros-v0')
-env = JoypadSpace(env, SIMPLE_MOVEMENT)
+# Q 값을 초기화
+Q = np.zeros([
+    env.observation_space.n, 
+    env.action_space.n
+    ])
 
-done = True
-for step in range(5000):
-    if done:
-        state = env.reset()
-    state, reward, done, info = env.step(env.action_space.sample())
-    env.render()
+#에피소드 진행
+state = env.reset()
+done = False
 
-env.close()
+while not done:
+    action = rargmax(Q[state, :])
+
+    new_state, reward, done, _ = env.step(action)
+
+    Q[state, action] = reward + np.max(Q[new_state, :])
+
+    state = new_state
