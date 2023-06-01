@@ -145,7 +145,7 @@ def optimize_model():
     # 전환합니다.
     batch = Transition(*zip(*transitions))
 
-    # 최종이 아닌 상태의 마스크를 계산하고 배치 요소를 연결합니다
+        # 최종이 아닌 상태의 마스크를 계산하고 배치 요소를 연결합니다
     # (최종 상태는 시뮬레이션이 종료 된 이후의 상태)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                           batch.next_state)), device=device, dtype=torch.bool)
@@ -184,7 +184,7 @@ def optimize_model():
 if torch.cuda.is_available():
     num_episodes = 700
 else:
-    num_episodes = 50
+    num_episodes = 500
 
 for i_episode in range(num_episodes):
     # 환경과 상태 초기화
