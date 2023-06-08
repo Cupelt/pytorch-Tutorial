@@ -1,4 +1,5 @@
 import gym
+import torch
 from gym.envs.registration import register
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,8 @@ register(
     kwargs={'map_name':'4x4','is_slippery':False}
 )
 env = gym.make("FrozenLake-v3", render_mode="human")
+
+print(torch.FloatTensor(1.))
 
 def rargmax(vector):
     m = np.amax(vector)
