@@ -14,11 +14,11 @@ register(
     entry_point="gym.envs.toy_text:FrozenLakeEnv",
     kwargs={'map_name':'4x4','is_slippery':False}
 )
-env = gym.make("FrozenLake-v3")
+env = gym.make("FrozenLake-v3", render_mode="human")
 
 # Set learning parameters
 num_episodes = 2000
-learning_rate = 0.001
+learning_rate = 0.1
 dis = torch.tensor(.99, dtype=torch.float32)
 
 n_obserbations = env.observation_space.n
@@ -26,14 +26,9 @@ n_actions = env.action_space.n
 
 rList = []
 
-agent = nn.Sequential(
-    nn.Linear(n_obserbations, 32),
-    nn.ReLU(),
-    nn.Linear(32, 32),
-    nn.ReLU(),
-    nn.Linear(32, n_actions)
-)
-criterion = nn.SmoothL1Loss()
+agent = nn.Linear(n_obserbations, n_actions)
+
+criterion = nn.MSELoss()
 optimizer = optim.SGD(agent.parameters(), learning_rate)
 
 def one_hot(x):
@@ -56,6 +51,7 @@ for i in range(num_episodes):
 
     while not done:
         Qpred = agent(one_hot(state))
+        target_Q = Qpred.clone().detach()
 
         if np.random.rand(1) < e:
             action = env.action_space.sample()
@@ -66,13 +62,16 @@ for i in range(num_episodes):
         # Get new state and reward from environment
         new_state, reward, done, _, _ = env.step(action)
 
-        if done and reward == 0 : reward = -1
+        # if done and reward == 0 : reward = -1
 
         # Update Q-table with new knowledge using learning rate
-        new_Qpred = agent(one_hot(new_state))
-        target_Q = torch.tensor(reward, dtype=torch.float32) + dis * torch.max(new_Qpred.detach())
+        if done:
+            target_Q[action] = reward
+        else:
+            new_Qpred = agent(one_hot(new_state)).clone().detach()
+            target_Q[action] = torch.tensor(reward, dtype=torch.float32) + dis * torch.max(new_Qpred)
         
-        loss = criterion(Qpred[action], target_Q)
+        loss = criterion(Qpred, target_Q)
         local_loss.append(float(loss.detach().numpy()))
         
         optimizer.zero_grad()
