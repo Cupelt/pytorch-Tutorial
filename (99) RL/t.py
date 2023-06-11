@@ -15,7 +15,12 @@ register(
 )
 env = gym.make("FrozenLake-v3", render_mode="human")
 
-print(torch.FloatTensor(1.))
+a = torch.tensor(10)
+b = torch.tensor(20)
+
+mse = torch.nn.MSELoss()
+
+print(torch.mean((a - b) ** 2))
 
 def rargmax(vector):
     m = np.amax(vector)
