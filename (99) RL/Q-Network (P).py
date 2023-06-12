@@ -23,7 +23,7 @@ optimizer = optim.SGD(agent.parameters(), learning_rate)
 rList = []
 num_episodes = 100
 
-for i in range(1000):
+for i in range(num_episodes):
     state, _ = env.reset()
     state = torch.tensor(state, dtype=torch.float32).to(device)
 

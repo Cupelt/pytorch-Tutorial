@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-env = gym.make("CartPole-v1", render_mode="human")
+env = gym.make("CartPole-v1")
 
 # matplotlib 설정
 is_ipython = 'inline' in matplotlib.get_backend()
