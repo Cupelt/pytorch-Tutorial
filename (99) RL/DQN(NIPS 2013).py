@@ -36,11 +36,8 @@ policy_net = nn.Sequential(
     nn.Linear(128, n_actions)
 ).to(device)
 
-target_net = policy_net
-target_net.load_state_dict(policy_net.state_dict())
-
 criterion = nn.MSELoss().to(device)
-optimizer = optim.SGD(target_net.parameters(), learning_rate)
+optimizer = optim.Adam(target_net.parameters(), learning_rate)
 
 replay_buffer = deque()
 def replay_train(model, batch):
@@ -48,17 +45,17 @@ def replay_train(model, batch):
     target_stack = torch.empty(0, dtype=torch.float32).reshape(0, n_actions).to(device)
 
     for state, action, reward, new_state, done in batch:
-        Q = model(state)
+        Q = model(state).clone().detach()
 
         if done:
             Q[action] = reward
         else:
-            Q[action] = reward + dis * torch.max(model(new_state))
+            Q[action] = torch.tensor(reward, dtype=torch.float32).to(device) + dis * torch.max(model(new_state))
         
         policy_stack = torch.vstack([policy_stack, model(state)])
         target_stack = torch.vstack([target_stack, Q])
     
-    loss = criterion(policy_stack, target_stack)
+    loss = criterion(policy_stack, target_stack)    
     
     optimizer.zero_grad()
     loss.backward()
@@ -66,22 +63,21 @@ def replay_train(model, batch):
 
     return loss
 
-rList = []
+step_list = []
 num_episodes = 2000
 
 for episode in range(num_episodes):
     state, _ = env.reset()
     state = torch.tensor(state, dtype=torch.float32).to(device)
 
-    rAll = 0
+    step_count = 0
     local_loss = []
     done = False
     
-    e = 1. / ((episode/50)+10)
+    e = 1. / ((episode / 10 ) + 1)
 
     while not done:
         Qpred = policy_net(state)
-        target_Q = Qpred.clone().detach()
 
         if np.random.rand(1) < e:
             action = env.action_space.sample()
@@ -91,22 +87,27 @@ for episode in range(num_episodes):
         # Get new state and reward from environment
         new_state, reward, done, _, _ = env.step(action)
         new_state = torch.tensor(new_state, dtype=torch.float32).to(device)
+        if done:
+            reward = -100
 
         replay_buffer.append((state, action, reward, new_state, done))
         if len(replay_buffer) > REPLAY_MEMORY:
             replay_buffer.popleft()
 
-        rAll += reward
+        step_count += 1
         state = new_state
+
+        if step_count > 10000:
+            break
     
     if episode % 10 == 1:
         for _ in range(50):
             batch = random.sample(replay_buffer, 10)
             loss = replay_train(policy_net, batch)
 
-    rList.append(rAll)
+    step_list.append(step_count)
 
-    print("Episode : {:4}, Reward : {}".format(episode, rAll))
+    print("Episode : {:4}, Step : {}".format(episode, step_count))
 
-plt.plot(range(len(rList)), rList, color="green")
+plt.plot(range(len(step_list)), step_list, color="green")
 plt.show()
