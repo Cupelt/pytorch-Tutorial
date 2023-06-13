@@ -9,23 +9,23 @@ import math
 
 from collections import namedtuple, deque
 
-env = gym.make("CartPole-v0")
+env = gym.make("CartPole-v1")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
 # HyperParameters
-BATCH_SIZE = 128
-GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 1000
-TAU = 0.005
-LEARNING_RATE = 1e-4
+BATCH_SIZE = 128        # 한번에 학습할 배치의 크기
+DISCOUNT = 0.99         # Discount Factor = 할인율
+EPS_START = 0.9         # 엡실론의 시작 값.
+EPS_END = 0.05          # 엡실론의 최종 값.
+EPS_DECAY = 1000        # 엡실론의 지수 감쇠(exponential decay) 속도.
+TAU = 0.005             # 타겟 네트워크의 업데이트 빈도.
+LEARNING_RATE = 1e-4    # 학습률
 
-num_episodes = 1000
-max_step = 1000
+num_episodes = 1000     # 학습 횟수
+max_step = 1000         # 한 에피소드에 실행할 수 있는 최대 스텝
 
 # Replay Buffer
 class ReplayMemory(object):
@@ -89,12 +89,11 @@ def optimize_model():
 
     state_action_values = net_policy(state_batch).gather(1, action_batch)
 
-
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
     with torch.no_grad():
         next_state_values[non_final_mask] = net_target(non_final_next_states).max(1)[0]
 
-    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+    expected_state_action_values = (next_state_values * DISCOUNT) + reward_batch
 
     loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
@@ -121,6 +120,12 @@ def select_action(state):
 
 # Training
 for i_episode in range(num_episodes):
+
+    if i_episode % 100 < 5:
+        env = gym.make("CartPole-v1", render_mode="human")
+    else:
+        env = gym.make("CartPole-v1")
+    
     state, _ = env.reset()
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
 
@@ -135,23 +140,20 @@ for i_episode in range(num_episodes):
             next_state = None
         else:
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
-        
+
         memory.push(state, action, next_state, reward)
 
         state = next_state
 
         optimize_model()
-        
-        target_net_state_dict = net_target.state_dict()
-        policy_net_state_dict = net_policy.state_dict()
-        for key in policy_net_state_dict:
-            target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
-        net_target.load_state_dict(target_net_state_dict)
+
+        if i_step % TAU == 0:
+            net_target.load_state_dict(net_policy.state_dict())
 
         if done:
             episode_duration.append(i_step)
-            step = i_step
             break
-    print("Episode : {}, Step : {}".format(i_episode, step))
+    print("Episode : {}, Step : {}".format(i_episode, episode_duration[i_episode]))
+    env.close()
         
         
