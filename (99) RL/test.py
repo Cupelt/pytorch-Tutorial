@@ -14,13 +14,6 @@ import torch.nn.functional as F
 
 env = gym.make("CartPole-v1")
 
-# matplotlib 설정
-is_ipython = 'inline' in matplotlib.get_backend()
-if is_ipython:
-    from IPython import display
-
-plt.ion()
-
 # GPU를 사용할 경우
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -109,33 +102,6 @@ def select_action(state):
 
 episode_durations = []
 
-
-def plot_durations(show_result=False):
-    plt.figure(1)
-    durations_t = torch.tensor(episode_durations, dtype=torch.float)
-    if show_result:
-        plt.title('Result')
-    else:
-        plt.clf()
-        plt.title('Training...')
-    plt.xlabel('Episode')
-    plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
-    # 100개의 에피소드 평균을 가져 와서 도표 그리기
-    if len(durations_t) >= 100:
-        means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
-        means = torch.cat((torch.zeros(99), means))
-        plt.plot(means.numpy())
-
-    plt.pause(0.001)  # 도표가 업데이트되도록 잠시 멈춤
-    if is_ipython:
-        if not show_result:
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
-        else:
-            display.display(plt.gcf())
-
-
 def optimize_model():
     if len(memory) < BATCH_SIZE:
         return
@@ -196,8 +162,6 @@ for i_episode in range(num_episodes):
         reward = torch.tensor([reward], device=device)
         done = terminated or truncated
 
-        env.render()
-
         if terminated:
             next_state = None
         else:
@@ -220,13 +184,19 @@ for i_episode in range(num_episodes):
             target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
         target_net.load_state_dict(target_net_state_dict)
 
+        # if i_episode % 10 == 1:
+        #     target_net.load_state_dict(policy_net.state_dict())
+
         if done:
             episode_durations.append(t + 1)
-            plot_durations()
+            step = t
             break
+
+    print("Episode : {:4}, Step : {}".format(
+        i_episode, step
+        ))
 env.close()
 
 print('Complete')
-plot_durations(show_result=True)
-plt.ioff()
+plt.plot(range(len(episode_durations)), episode_durations, color="green")
 plt.show()
