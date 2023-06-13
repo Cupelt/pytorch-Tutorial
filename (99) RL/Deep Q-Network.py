@@ -103,21 +103,29 @@ def optimize_model():
     torch.nn.utils.clip_grad_value_(net_policy.parameters(), 100)
     optimizer.step()
 
+
+steps_done = 0
+
+def select_action(state):
+    global steps_done
+
+    sample = random.random()
+    eps_threshold = EPS_END + (EPS_START - EPS_END) * \
+        math.exp(-1. * steps_done / EPS_DECAY)
+    steps_done += 1
+    if sample > eps_threshold:
+        with torch.no_grad():
+            return torch.argmax(net_policy(state)).view(1, 1)
+    else:
+        return torch.tensor([[env.action_space.sample()]], dtype=torch.long, device=device)
+
 # Training
 for i_episode in range(num_episodes):
     state, _ = env.reset()
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
 
     for i_step in range(max_step):
-        sample = random.random()
-        eps_threshold = EPS_END + (EPS_START - EPS_END) * \
-            math.exp(-1. * i_step / EPS_DECAY)
-
-        if sample > eps_threshold:
-            with torch.no_grad():
-                action = torch.argmax(net_policy(state)).view(1, 1)
-        else:
-            action = torch.tensor([[env.action_space.sample()]], dtype=torch.long, device=device)
+        action = select_action(state)
         
         observation, reward, terminated, truncated, _ = env.step(action.item())
         reward = torch.tensor([reward], device=device)
@@ -142,7 +150,8 @@ for i_episode in range(num_episodes):
 
         if done:
             episode_duration.append(i_step)
+            step = i_step
             break
-    print("Episode : {}, Step : {}".format(i_episode, episode_duration[i_episode]))
+    print("Episode : {}, Step : {}".format(i_episode, step))
         
         
