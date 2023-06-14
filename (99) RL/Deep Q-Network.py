@@ -88,12 +88,12 @@ def optimize_model():
     reward_batch = torch.cat(batch.reward)
 
     state_action_values = net_policy(state_batch).gather(1, action_batch)
-
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
+
     with torch.no_grad():
         next_state_values[non_final_mask] = net_target(non_final_next_states).max(1)[0]
 
-    expected_state_action_values = (next_state_values * DISCOUNT) + reward_batch
+    expected_state_action_values = reward_batch + next_state_values * DISCOUNT
 
     loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
